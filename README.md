@@ -1,6 +1,6 @@
-# Ethereum blocks
+# Happyuc blocks
 
-Provides you with an `EthBlocks` collection, which stores the last 50 blocks.
+Provides you with an `HucBlocks` collection, which stores the last 50 blocks.
 
 You can query blocks like any other Meteor collection.
 
@@ -55,11 +55,11 @@ EthBlocks.detectFork(function(oldBlock, newBlock) {
 });
 ```
 
-Note you can call `EthBlocks.detectFork(cb)` mutliple times, to add multiple callbacks.
+Note you can call `HucBlocks.detectFork(cb)` mutliple times, to add multiple callbacks.
 
 ### Clear all stored blocks
 
-If you switch to a chain, which has a lower block number EthBlocks will reset your interally cache of the last 50 blocks.
+If you switch to a chain, which has a lower block number HucBlocks will reset your interally cache of the last 50 blocks.
 If you want to do that manually call:
 
 ```js

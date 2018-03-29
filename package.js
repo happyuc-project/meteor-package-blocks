@@ -1,8 +1,8 @@
 Package.describe({
-  name: "ethereum:blocks",
+  name: "happyuc:blocks",
   summary: "Provides informations about the current and last 50 blocks",
-  version: "1.1.0",
-  git: "http://github.com/ethereum/meteor-package-blocks"
+  version: "1.0.0",
+  git: "http://github.com/happyuc-project/meteor-package-blocks"
 });
 
 Package.onUse(function(api) {
@@ -11,15 +11,13 @@ Package.onUse(function(api) {
   api.use("mongo", ["client", "server"]);
 
   // api.use('frozeman:persistent-minimongo@0.1.3', 'client');
-  api.use("ethereum:web3@1.0.0-beta.33", ["client", "server"]);
-
-  api.export(["EthBlocks"], ["client", "server"]);
-
+  api.use("happyuc:webu@1.0.0", ["client", "server"]);
+  api.export(["HucBlocks"], ["client", "server"]);
   api.addFiles("blocks.js", ["client", "server"]);
 });
 
 // Package.onTest(function(api) {
 //   api.use('tinytest');
-//   api.use('ethereum:blocks');
+//   api.use('happyuc:blocks');
 //   api.addFiles('blocks-tests.js');
 // });

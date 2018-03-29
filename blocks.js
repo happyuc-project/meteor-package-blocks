@@ -1,33 +1,33 @@
 /**
 
-@module Ethereum:blocks
+@module Happyuc:blocks
 */
 
 /**
-The EthBlocks collection, with some ethereum additions.
+The HucBlocks collection, with some happyuc additions.
 
-@class EthBlocks
+@class HucBlocks
 @constructor
 */
 
-EthBlocks = new Mongo.Collection("ethereum_blocks", { connection: null });
+HucBlocks = new Mongo.Collection("happyuc_blocks", { connection: null });
 
 // if(typeof PersistentMinimongo !== 'undefined')
-//     new PersistentMinimongo(EthBlocks);
+//     new PersistentMinimongo(HucBlocks);
 
 /**
 Gives you reactively the lates block.
 
 @property latest
 */
-Object.defineProperty(EthBlocks, "latest", {
+Object.defineProperty(HucBlocks, "latest", {
   get: function() {
-    return EthBlocks.findOne({}, { sort: { number: -1 } }) || {};
+    return HucBlocks.findOne({}, { sort: { number: -1 } }) || {};
   },
   set: function(values) {
-    var block = EthBlocks.findOne({}, { sort: { number: -1 } }) || {};
+    var block = HucBlocks.findOne({}, { sort: { number: -1 } }) || {};
     values = values || {};
-    EthBlocks.update(block._id, { $set: values });
+    HucBlocks.update(block._id, { $set: values });
   }
 });
 
@@ -36,23 +36,23 @@ Stores all the callbacks
 
 @property _forkCallbacks
 */
-EthBlocks._forkCallbacks = [];
+HucBlocks._forkCallbacks = [];
 
 /**
 Start looking for new blocks
 
 @method init
 */
-EthBlocks.init = function() {
-  if (typeof web3 === "undefined") {
+HucBlocks.init = function() {
+  if (typeof webu === "undefined") {
     console.warn(
-      "EthBlocks couldn't find web3, please make sure to instantiate a web3 object before calling EthBlocks.init()"
+      "HucBlocks couldn't find webu, please make sure to instantiate a webu object before calling HucBlocks.init()"
     );
     return;
   }
 
   // clear current block list
-  EthBlocks.clear();
+  HucBlocks.clear();
 
   Tracker.nonreactive(function() {
     observeLatestBlocks();
@@ -64,8 +64,8 @@ Add callbacks to detect forks
 
 @method detectFork
 */
-EthBlocks.detectFork = function(cb) {
-  EthBlocks._forkCallbacks.push(cb);
+HucBlocks.detectFork = function(cb) {
+  HucBlocks._forkCallbacks.push(cb);
 };
 
 /**
@@ -73,9 +73,9 @@ Clear all blocks
 
 @method clear
 */
-EthBlocks.clear = function() {
-  _.each(EthBlocks.find({}).fetch(), function(block) {
-    EthBlocks.remove(block._id);
+HucBlocks.clear = function() {
+  _.each(HucBlocks.find({}).fetch(), function(block) {
+    HucBlocks.remove(block._id);
   });
 };
 
@@ -94,15 +94,15 @@ Update the block info and adds additional properties.
 */
 function updateBlock(block) {
   // reset the chain, if the current blocknumber is 100 blocks less
-  if (block.number + 10 < EthBlocks.latest.number) EthBlocks.clear();
+  if (block.number + 10 < HucBlocks.latest.number) HucBlocks.clear();
 
   block.difficulty = block.difficulty.toString(10);
   block.totalDifficulty = block.totalDifficulty.toString(10);
 
-  web3.eth.getGasPrice(function(e, gasPrice) {
+  webu.huc.getGasPrice(function(e, gasPrice) {
     if (!e) {
       block.gasPrice = gasPrice.toString(10);
-      EthBlocks.upsert(
+      HucBlocks.upsert(
         "bl_" + block.hash.replace("0x", "").substr(0, 20),
         block
       );
@@ -118,14 +118,14 @@ Additionally cap the collection to 50 blocks
 */
 function observeLatestBlocks() {
   // get the latest block immediately
-  web3.eth.getBlock("latest", function(e, block) {
+  webu.huc.getBlock("latest", function(e, block) {
     if (!e) {
       updateBlock(block);
     }
   });
 
   // GET the latest blockchain information
-  subscription = web3.eth.subscribe("newBlockHeaders", function(error, result) {
+  subscription = webu.huc.subscribe("newBlockHeaders", function(error, result) {
     checkLatestBlocks(error, result ? result.hash : null);
   });
 }
@@ -137,9 +137,9 @@ The observeLatestBlocks callback used in the block subscription.
 */
 var checkLatestBlocks = function(e, hash) {
   if (!e) {
-    web3.eth.getBlock(hash, function(e, block) {
+    webu.huc.getBlock(hash, function(e, block) {
       if (!e) {
-        var oldBlock = EthBlocks.latest;
+        var oldBlock = HucBlocks.latest;
 
         // console.log('BLOCK', block.number);
 
@@ -150,7 +150,7 @@ var checkLatestBlocks = function(e, hash) {
         if (oldBlock && oldBlock.hash !== block.parentHash) {
           // console.log('FORK detected from Block #'+ oldBlock.number + ' -> #'+ block.number +'!');
 
-          _.each(EthBlocks._forkCallbacks, function(cb) {
+          _.each(HucBlocks._forkCallbacks, function(cb) {
             if (_.isFunction(cb)) cb(oldBlock, block);
           });
         }
@@ -158,12 +158,12 @@ var checkLatestBlocks = function(e, hash) {
         updateBlock(block);
 
         // drop the 50th block
-        var blocks = EthBlocks.find({}, { sort: { number: -1 } }).fetch();
+        var blocks = HucBlocks.find({}, { sort: { number: -1 } }).fetch();
         if (blocks.length >= 5) {
           var count = 0;
           _.each(blocks, function(bl) {
             count++;
-            if (count >= 5) EthBlocks.remove({ _id: bl._id });
+            if (count >= 5) HucBlocks.remove({ _id: bl._id });
           });
         }
       }
