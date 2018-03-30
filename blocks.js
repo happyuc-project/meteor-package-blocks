@@ -1,52 +1,52 @@
 /**
 
-@module Happyuc:blocks
-*/
+ @module Happyuc:blocks
+ */
 
 /**
-The HucBlocks collection, with some happyuc additions.
+ The HucBlocks collection, with some happyuc additions.
 
-@class HucBlocks
-@constructor
-*/
+ @class HucBlocks
+ @constructor
+ */
 
-HucBlocks = new Mongo.Collection("happyuc_blocks", { connection: null });
+HucBlocks = new Mongo.Collection('happyuc_blocks', {connection: null});
 
 // if(typeof PersistentMinimongo !== 'undefined')
 //     new PersistentMinimongo(HucBlocks);
 
 /**
-Gives you reactively the lates block.
+ Gives you reactively the lates block.
 
-@property latest
-*/
-Object.defineProperty(HucBlocks, "latest", {
+ @property latest
+ */
+Object.defineProperty(HucBlocks, 'latest', {
   get: function() {
-    return HucBlocks.findOne({}, { sort: { number: -1 } }) || {};
+    return HucBlocks.findOne({}, {sort: {number: -1}}) || {};
   },
   set: function(values) {
-    var block = HucBlocks.findOne({}, { sort: { number: -1 } }) || {};
+    var block = HucBlocks.findOne({}, {sort: {number: -1}}) || {};
     values = values || {};
-    HucBlocks.update(block._id, { $set: values });
-  }
+    HucBlocks.update(block._id, {$set: values});
+  },
 });
 
 /**
-Stores all the callbacks
+ Stores all the callbacks
 
-@property _forkCallbacks
-*/
+ @property _forkCallbacks
+ */
 HucBlocks._forkCallbacks = [];
 
 /**
-Start looking for new blocks
+ Start looking for new blocks
 
-@method init
-*/
+ @method init
+ */
 HucBlocks.init = function() {
-  if (typeof webu === "undefined") {
+  if (typeof webu === 'undefined') {
     console.warn(
-      "HucBlocks couldn't find webu, please make sure to instantiate a webu object before calling HucBlocks.init()"
+        'HucBlocks couldn\'t find webu, please make sure to instantiate a webu object before calling HucBlocks.init()',
     );
     return;
   }
@@ -60,19 +60,19 @@ HucBlocks.init = function() {
 };
 
 /**
-Add callbacks to detect forks
+ Add callbacks to detect forks
 
-@method detectFork
-*/
+ @method detectFork
+ */
 HucBlocks.detectFork = function(cb) {
   HucBlocks._forkCallbacks.push(cb);
 };
 
 /**
-Clear all blocks
+ Clear all blocks
 
-@method clear
-*/
+ @method clear
+ */
 HucBlocks.clear = function() {
   _.each(HucBlocks.find({}).fetch(), function(block) {
     HucBlocks.remove(block._id);
@@ -80,18 +80,18 @@ HucBlocks.clear = function() {
 };
 
 /**
-The global block subscription instance.
+ The global block filter instance.
 
-@property subscription
-*/
-var subscription = null;
+ @property filter
+ */
+var filter = null;
 
 /**
-Update the block info and adds additional properties.
+ Update the block info and adds additional properties.
 
-@method updateBlock
-@param {Object} block
-*/
+ @method updateBlock
+ @param {Object} block
+ */
 function updateBlock(block) {
   // reset the chain, if the current blocknumber is 100 blocks less
   if (block.number + 10 < HucBlocks.latest.number) HucBlocks.clear();
@@ -103,38 +103,36 @@ function updateBlock(block) {
     if (!e) {
       block.gasPrice = gasPrice.toString(10);
       HucBlocks.upsert(
-        "bl_" + block.hash.replace("0x", "").substr(0, 20),
-        block
+          'bl_' + block.hash.replace('0x', '').substr(0, 20),
+          block,
       );
     }
   });
 }
 
 /**
-Observe the latest blocks and store them in the Blocks collection.
-Additionally cap the collection to 50 blocks
+ Observe the latest blocks and store them in the Blocks collection.
+ Additionally cap the collection to 50 blocks
 
-@method observeLatestBlocks
-*/
+ @method observeLatestBlocks
+ */
 function observeLatestBlocks() {
   // get the latest block immediately
-  webu.huc.getBlock("latest", function(e, block) {
+  webu.huc.getBlock('latest', function(e, block) {
     if (!e) {
       updateBlock(block);
     }
   });
 
   // GET the latest blockchain information
-  subscription = webu.huc.subscribe("newBlockHeaders", function(error, result) {
-    checkLatestBlocks(error, result ? result.hash : null);
-  });
+  filter = webu.huc.filter('latest').watch(checkLatestBlocks);
 }
 
 /**
-The observeLatestBlocks callback used in the block subscription.
+ The observeLatestBlocks callback used in the block filter.
 
-@method checkLatestBlocks
-*/
+ @method checkLatestBlocks
+ */
 var checkLatestBlocks = function(e, hash) {
   if (!e) {
     webu.huc.getBlock(hash, function(e, block) {
@@ -156,17 +154,20 @@ var checkLatestBlocks = function(e, hash) {
         }
 
         updateBlock(block);
-
         // drop the 50th block
-        var blocks = HucBlocks.find({}, { sort: { number: -1 } }).fetch();
+        var blocks = EthBlocks.find({}, {sort: {number: -1}}).fetch();
         if (blocks.length >= 5) {
           var count = 0;
           _.each(blocks, function(bl) {
             count++;
-            if (count >= 5) HucBlocks.remove({ _id: bl._id });
+            if (count >= 5)
+              EthBlocks.remove({_id: bl._id});
           });
         }
       }
     });
+  } else {
+    filter.stopWatching();
+    filter = webu.huc.filter('latest').watch(checkLatestBlocks);
   }
 };
