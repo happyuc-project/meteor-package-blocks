@@ -134,6 +134,8 @@ function observeLatestBlocks() {
  @method checkLatestBlocks
  */
 var checkLatestBlocks = function(e, hash) {
+  console.log(e);
+  console.log(filter.implementation);
   if (!e) {
     webu.huc.getBlock(hash, function(e, block) {
       if (!e) {
@@ -155,13 +157,13 @@ var checkLatestBlocks = function(e, hash) {
 
         updateBlock(block);
         // drop the 50th block
-        var blocks = EthBlocks.find({}, {sort: {number: -1}}).fetch();
+        var blocks = HucBlocks.find({}, {sort: {number: -1}}).fetch();
         if (blocks.length >= 5) {
           var count = 0;
           _.each(blocks, function(bl) {
             count++;
             if (count >= 5)
-              EthBlocks.remove({_id: bl._id});
+              HucBlocks.remove({_id: bl._id});
           });
         }
       }
