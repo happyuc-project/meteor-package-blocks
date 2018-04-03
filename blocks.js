@@ -45,9 +45,7 @@ HucBlocks._forkCallbacks = [];
  */
 HucBlocks.init = function() {
   if (typeof webu === 'undefined') {
-    console.warn(
-        'HucBlocks couldn\'t find webu, please make sure to instantiate a webu object before calling HucBlocks.init()',
-    );
+    console.warn('HucBlocks couldn\'t find webu, please make sure to instantiate a webu object before calling HucBlocks.init()');
     return;
   }
 
@@ -102,10 +100,7 @@ function updateBlock(block) {
   webu.huc.getGasPrice(function(e, gasPrice) {
     if (!e) {
       block.gasPrice = gasPrice.toString(10);
-      HucBlocks.upsert(
-          'bl_' + block.hash.replace('0x', '').substr(0, 20),
-          block,
-      );
+      HucBlocks.upsert('bl_' + block.hash.replace('0x', '').substr(0, 20), block);
     }
   });
 }
@@ -119,9 +114,7 @@ function updateBlock(block) {
 function observeLatestBlocks() {
   // get the latest block immediately
   webu.huc.getBlock('latest', function(e, block) {
-    if (!e) {
-      updateBlock(block);
-    }
+    if (!e) updateBlock(block);
   });
 
   // GET the latest blockchain information
@@ -134,42 +127,38 @@ function observeLatestBlocks() {
  @method checkLatestBlocks
  */
 var checkLatestBlocks = function(e, hash) {
-  console.log(e);
-  console.log(filter.implementation);
-  if (!e) {
-    webu.huc.getBlock(hash, function(e, block) {
-      if (!e) {
-        var oldBlock = HucBlocks.latest;
+  webu.huc.getBlock(hash, function(e, block) {
+    if (!e) {
+      var oldBlock = HucBlocks.latest;
 
-        // console.log('BLOCK', block.number);
+      // console.log('BLOCK', block.number);
 
-        // if(!oldBlock)
-        //     console.log('No previous block found: '+ --block.number);
+      // if(!oldBlock)
+      //     console.log('No previous block found: '+ --block.number);
 
-        // CHECK for FORK
-        if (oldBlock && oldBlock.hash !== block.parentHash) {
-          // console.log('FORK detected from Block #'+ oldBlock.number + ' -> #'+ block.number +'!');
+      // CHECK for FORK
+      if (oldBlock && oldBlock.hash !== block.parentHash) {
+        // console.log('FORK detected from Block #'+ oldBlock.number + ' -> #'+ block.number +'!');
 
-          _.each(HucBlocks._forkCallbacks, function(cb) {
-            if (_.isFunction(cb)) cb(oldBlock, block);
-          });
-        }
-
-        updateBlock(block);
-        // drop the 50th block
-        var blocks = HucBlocks.find({}, {sort: {number: -1}}).fetch();
-        if (blocks.length >= 5) {
-          var count = 0;
-          _.each(blocks, function(bl) {
-            count++;
-            if (count >= 5)
-              HucBlocks.remove({_id: bl._id});
-          });
-        }
+        _.each(HucBlocks._forkCallbacks, function(cb) {
+          if (_.isFunction(cb)) cb(oldBlock, block);
+        });
       }
-    });
-  } else {
-    filter.stopWatching();
-    filter = webu.huc.filter('latest').watch(checkLatestBlocks);
-  }
+
+      updateBlock(block);
+      // drop the 50th block
+      var blocks = HucBlocks.find({}, {sort: {number: -1}}).fetch();
+      if (blocks.length >= 5) {
+        var count = 0;
+        _.each(blocks, function(bl) {
+          count++;
+          if (count >= 5) HucBlocks.remove({_id: bl._id});
+        });
+      }
+    }
+  });
+  // } else {
+  //   filter.stopWatching();
+  //   filter = webu.huc.filter('latest').watch(checkLatestBlocks);
+  // }
 };

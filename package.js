@@ -1,7 +1,7 @@
 Package.describe({
   name: "happyuc:blocks",
   summary: "Provides informations about the current and last 50 blocks",
-  version: "1.0.6",
+  version: "1.0.8",
   git: "http://github.com/happyuc-project/meteor-package-blocks"
 });
 
