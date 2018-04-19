@@ -155,10 +155,9 @@ var checkLatestBlocks = function(e, hash) {
           if (count >= 5) HucBlocks.remove({_id: bl._id});
         });
       }
+    } else {
+      filter.stopWatching();
+      filter = webu.huc.filter('latest').watch(checkLatestBlocks);
     }
   });
-  // } else {
-  //   filter.stopWatching();
-  //   filter = webu.huc.filter('latest').watch(checkLatestBlocks);
-  // }
 };
