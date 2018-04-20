@@ -12,9 +12,6 @@
 
 HucBlocks = new Mongo.Collection('happyuc_blocks', {connection: null});
 
-// if(typeof PersistentMinimongo !== 'undefined')
-//     new PersistentMinimongo(HucBlocks);
-
 /**
  Gives you reactively the lates block.
 
@@ -131,15 +128,8 @@ var checkLatestBlocks = function(e, hash) {
     if (!e) {
       var oldBlock = HucBlocks.latest;
 
-      // console.log('BLOCK', block.number);
-
-      // if(!oldBlock)
-      //     console.log('No previous block found: '+ --block.number);
-
       // CHECK for FORK
       if (oldBlock && oldBlock.hash !== block.parentHash) {
-        // console.log('FORK detected from Block #'+ oldBlock.number + ' -> #'+ block.number +'!');
-
         _.each(HucBlocks._forkCallbacks, function(cb) {
           if (_.isFunction(cb)) cb(oldBlock, block);
         });
